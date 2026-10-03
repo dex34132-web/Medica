@@ -102,6 +102,18 @@ class MedicaViewModel(application: Application) : AndroidViewModel(application) 
     private val _viewingMediaTitle = MutableStateFlow<String?>(null)
     val viewingMediaTitle: StateFlow<String?> = _viewingMediaTitle.asStateFlow()
 
+    // Backend Architecture Visualizer screen state
+    private val _showArchitectureScreen = MutableStateFlow(false)
+    val showArchitectureScreen: StateFlow<Boolean> = _showArchitectureScreen.asStateFlow()
+
+    fun openArchitectureScreen() {
+        _showArchitectureScreen.value = true
+    }
+
+    fun closeArchitectureScreen() {
+        _showArchitectureScreen.value = false
+    }
+
     init {
         viewModelScope.launch {
             caseService.seedInitialCasesIfEmpty()

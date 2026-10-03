@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ui.screens.BackendArchitectureScreen
 import com.example.ui.screens.CasesScreen
 import com.example.ui.screens.GeneralSettingsScreen
 import com.example.ui.screens.HomeScreen
@@ -71,17 +72,20 @@ class MainActivity : ComponentActivity() {
 fun MedicaMainApp(viewModel: MedicaViewModel) {
     val currentTab by viewModel.currentTab.collectAsState()
     val showNewCase by viewModel.showNewCaseScreen.collectAsState()
+    val showArchitecture by viewModel.showArchitectureScreen.collectAsState()
 
     // Handle back button
-    BackHandler(enabled = showNewCase || currentTab != MainTab.HOME) {
-        if (showNewCase) {
-            viewModel.closeNewCaseScreen()
-        } else {
-            viewModel.switchTab(MainTab.HOME)
+    BackHandler(enabled = showArchitecture || showNewCase || currentTab != MainTab.HOME) {
+        when {
+            showArchitecture -> viewModel.closeArchitectureScreen()
+            showNewCase -> viewModel.closeNewCaseScreen()
+            else -> viewModel.switchTab(MainTab.HOME)
         }
     }
 
-    if (showNewCase) {
+    if (showArchitecture) {
+        BackendArchitectureScreen(onNavigateBack = { viewModel.closeArchitectureScreen() })
+    } else if (showNewCase) {
         NewCaseScreen(viewModel = viewModel)
     } else {
         Scaffold(

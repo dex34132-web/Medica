@@ -1,5 +1,12 @@
 package com.example.model
 
+enum class UrgencyLevel(val label: String, val code: String) {
+    CRITICAL("CRITICAL", "RED - IMMEDIATE"),
+    URGENT("URGENT", "YELLOW - DELAYED"),
+    MODERATE("MODERATE", "GREEN - MINOR"),
+    LOW("LOW", "WHITE - NON-URGENT")
+}
+
 enum class MediaType(val label: String) {
     PHOTO("Photo"),
     VIDEO("Video"),
