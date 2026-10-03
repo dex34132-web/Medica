@@ -7,16 +7,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocalHospital
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Folder
@@ -28,38 +27,29 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.screens.AnalysisScreen
-import com.example.ui.screens.CaseDetailScreen
-import com.example.ui.screens.CaseHistoryScreen
-import com.example.ui.screens.EscalationScreen
-import com.example.ui.screens.EvidenceViewerScreen
-import com.example.ui.screens.FlowchartViewerScreen
+import com.example.ui.screens.CasesScreen
+import com.example.ui.screens.GeneralSettingsScreen
 import com.example.ui.screens.HomeScreen
-import com.example.ui.screens.KnowledgeVaultScreen
-import com.example.ui.screens.MediaReviewScreen
+import com.example.ui.screens.MedicalVaultScreen
 import com.example.ui.screens.NewCaseScreen
-import com.example.ui.screens.ResultScreen
-import com.example.ui.screens.SettingsScreen
-import com.example.ui.screens.VaultDetailScreen
-import com.example.ui.theme.MedicaBlue
+import com.example.ui.theme.MedicaAccentBlue
+import com.example.ui.theme.MedicaBorderDark
+import com.example.ui.theme.MedicaCardDark
+import com.example.ui.theme.MedicaTextMuted
 import com.example.ui.theme.MedicaTheme
 import com.example.viewmodel.MainTab
 import com.example.viewmodel.MedicaViewModel
-import com.example.viewmodel.Screen
 
 class MainActivity : ComponentActivity() {
 
@@ -71,279 +61,166 @@ class MainActivity : ComponentActivity() {
         setContent {
             val isDark by viewModel.isDarkTheme.collectAsState()
             MedicaTheme(darkTheme = isDark) {
-                MedicaApp(viewModel = viewModel)
+                MedicaMainApp(viewModel = viewModel)
             }
         }
     }
 }
 
 @Composable
-fun MedicaApp(viewModel: MedicaViewModel) {
-    val currentScreen by viewModel.currentScreen.collectAsState()
+fun MedicaMainApp(viewModel: MedicaViewModel) {
     val currentTab by viewModel.currentTab.collectAsState()
+    val showNewCase by viewModel.showNewCaseScreen.collectAsState()
 
-    // Handle Android system back button
-    BackHandler(enabled = currentScreen !is Screen.Home) {
-        viewModel.navigateBack()
+    // Handle back button
+    BackHandler(enabled = showNewCase || currentTab != MainTab.HOME) {
+        if (showNewCase) {
+            viewModel.closeNewCaseScreen()
+        } else {
+            viewModel.switchTab(MainTab.HOME)
+        }
     }
 
-    val isTopLevelScreen = currentScreen is Screen.Home ||
-            currentScreen is Screen.CasesList ||
-            currentScreen is Screen.VaultList ||
-            currentScreen is Screen.Settings
-
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        val isWideScreen = maxWidth >= 600.dp
-
-        if (isWideScreen) {
-            // Adaptive Tablet / Landscape layout with NavigationRail
-            Row(modifier = Modifier.fillMaxSize()) {
-                if (isTopLevelScreen) {
-                    NavigationRail(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.testTag("tablet_navigation_rail")
-                    ) {
-                        NavigationRailItem(
-                            selected = currentTab == MainTab.HOME,
-                            onClick = { viewModel.switchTab(MainTab.HOME) },
-                            icon = {
-                                Icon(
-                                    imageVector = if (currentTab == MainTab.HOME) Icons.Filled.Home else Icons.Outlined.Home,
-                                    contentDescription = "Home"
-                                )
-                            },
-                            label = { Text("Home", fontFamily = FontFamily.Monospace, fontSize = 10.sp) },
-                            colors = NavigationRailItemDefaults.colors(
-                                selectedIconColor = MedicaBlue,
-                                indicatorColor = MedicaBlue.copy(alpha = 0.2f)
+    if (showNewCase) {
+        NewCaseScreen(viewModel = viewModel)
+    } else {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                NavigationBar(
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .border(width = 0.8.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                        .testTag("medica_bottom_navigation"),
+                    containerColor = MaterialTheme.colorScheme.background,
+                    tonalElevation = 0.dp
+                ) {
+                    // 1. Home Tab
+                    NavigationBarItem(
+                        selected = currentTab == MainTab.HOME,
+                        onClick = { viewModel.switchTab(MainTab.HOME) },
+                        icon = {
+                            Icon(
+                                imageVector = if (currentTab == MainTab.HOME) Icons.Filled.Home else Icons.Outlined.Home,
+                                contentDescription = "Home",
+                                modifier = Modifier.size(22.dp)
                             )
-                        )
-
-                        NavigationRailItem(
-                            selected = currentTab == MainTab.CASES,
-                            onClick = { viewModel.switchTab(MainTab.CASES) },
-                            icon = {
-                                Icon(
-                                    imageVector = if (currentTab == MainTab.CASES) Icons.Filled.Folder else Icons.Outlined.Folder,
-                                    contentDescription = "Cases"
-                                )
-                            },
-                            label = { Text("Cases", fontFamily = FontFamily.Monospace, fontSize = 10.sp) },
-                            colors = NavigationRailItemDefaults.colors(
-                                selectedIconColor = MedicaBlue,
-                                indicatorColor = MedicaBlue.copy(alpha = 0.2f)
+                        },
+                        label = {
+                            Text(
+                                text = "Home",
+                                fontSize = 11.sp,
+                                fontWeight = if (currentTab == MainTab.HOME) FontWeight.SemiBold else FontWeight.Normal
                             )
-                        )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MedicaAccentBlue,
+                            selectedTextColor = MedicaAccentBlue,
+                            indicatorColor = Color.Transparent,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        modifier = Modifier.testTag("nav_tab_home")
+                    )
 
-                        NavigationRailItem(
-                            selected = currentTab == MainTab.VAULT,
-                            onClick = { viewModel.switchTab(MainTab.VAULT) },
-                            icon = {
-                                Icon(
-                                    imageVector = if (currentTab == MainTab.VAULT) Icons.Filled.MedicalServices else Icons.Outlined.MedicalServices,
-                                    contentDescription = "Vault"
-                                )
-                            },
-                            label = { Text("Vault", fontFamily = FontFamily.Monospace, fontSize = 10.sp) },
-                            colors = NavigationRailItemDefaults.colors(
-                                selectedIconColor = MedicaBlue,
-                                indicatorColor = MedicaBlue.copy(alpha = 0.2f)
+                    // 2. Cases Tab
+                    NavigationBarItem(
+                        selected = currentTab == MainTab.CASES,
+                        onClick = { viewModel.switchTab(MainTab.CASES) },
+                        icon = {
+                            Icon(
+                                imageVector = if (currentTab == MainTab.CASES) Icons.Filled.MedicalServices else Icons.Outlined.MedicalServices,
+                                contentDescription = "Cases",
+                                modifier = Modifier.size(22.dp)
                             )
-                        )
-
-                        NavigationRailItem(
-                            selected = currentTab == MainTab.SETTINGS,
-                            onClick = { viewModel.switchTab(MainTab.SETTINGS) },
-                            icon = {
-                                Icon(
-                                    imageVector = if (currentTab == MainTab.SETTINGS) Icons.Filled.Settings else Icons.Outlined.Settings,
-                                    contentDescription = "Settings"
-                                )
-                            },
-                            label = { Text("Settings", fontFamily = FontFamily.Monospace, fontSize = 10.sp) },
-                            colors = NavigationRailItemDefaults.colors(
-                                selectedIconColor = MedicaBlue,
-                                indicatorColor = MedicaBlue.copy(alpha = 0.2f)
+                        },
+                        label = {
+                            Text(
+                                text = "Cases",
+                                fontSize = 11.sp,
+                                fontWeight = if (currentTab == MainTab.CASES) FontWeight.SemiBold else FontWeight.Normal
                             )
-                        )
-                    }
-                }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MedicaAccentBlue,
+                            selectedTextColor = MedicaAccentBlue,
+                            indicatorColor = Color.Transparent,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        modifier = Modifier.testTag("nav_tab_cases")
+                    )
 
-                Box(modifier = Modifier.weight(1f)) {
-                    ScreenContent(screen = currentScreen, viewModel = viewModel)
+                    // 3. Vault Tab
+                    NavigationBarItem(
+                        selected = currentTab == MainTab.VAULT,
+                        onClick = { viewModel.switchTab(MainTab.VAULT) },
+                        icon = {
+                            Icon(
+                                imageVector = if (currentTab == MainTab.VAULT) Icons.Filled.Folder else Icons.Outlined.Folder,
+                                contentDescription = "Vault",
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = "Vault",
+                                fontSize = 11.sp,
+                                fontWeight = if (currentTab == MainTab.VAULT) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MedicaAccentBlue,
+                            selectedTextColor = MedicaAccentBlue,
+                            indicatorColor = Color.Transparent,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        modifier = Modifier.testTag("nav_tab_vault")
+                    )
+
+                    // 4. Settings Tab
+                    NavigationBarItem(
+                        selected = currentTab == MainTab.SETTINGS,
+                        onClick = { viewModel.switchTab(MainTab.SETTINGS) },
+                        icon = {
+                            Icon(
+                                imageVector = if (currentTab == MainTab.SETTINGS) Icons.Filled.Settings else Icons.Outlined.Settings,
+                                contentDescription = "Settings",
+                                modifier = Modifier.size(22.dp)
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = "Settings",
+                                fontSize = 11.sp,
+                                fontWeight = if (currentTab == MainTab.SETTINGS) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MedicaAccentBlue,
+                            selectedTextColor = MedicaAccentBlue,
+                            indicatorColor = Color.Transparent,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        modifier = Modifier.testTag("nav_tab_settings")
+                    )
                 }
             }
-        } else {
-            // Standard Mobile Phone layout with Bottom NavigationBar
-            Scaffold(
-                modifier = Modifier.fillMaxSize(),
-                bottomBar = {
-                    if (isTopLevelScreen) {
-                        NavigationBar(
-                            modifier = Modifier
-                                .navigationBarsPadding()
-                                .testTag("bottom_nav_bar"),
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            tonalElevation = 3.dp
-                        ) {
-                            NavigationBarItem(
-                                selected = currentTab == MainTab.HOME,
-                                onClick = { viewModel.switchTab(MainTab.HOME) },
-                                icon = {
-                                    Icon(
-                                        imageVector = if (currentTab == MainTab.HOME) Icons.Filled.Home else Icons.Outlined.Home,
-                                        contentDescription = "Home"
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        text = "HOME",
-                                        fontFamily = FontFamily.Monospace,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MedicaBlue,
-                                    selectedTextColor = MedicaBlue,
-                                    indicatorColor = MedicaBlue.copy(alpha = 0.2f),
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-
-                            NavigationBarItem(
-                                selected = currentTab == MainTab.CASES,
-                                onClick = { viewModel.switchTab(MainTab.CASES) },
-                                icon = {
-                                    Icon(
-                                        imageVector = if (currentTab == MainTab.CASES) Icons.Filled.Folder else Icons.Outlined.Folder,
-                                        contentDescription = "Cases"
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        text = "CASES",
-                                        fontFamily = FontFamily.Monospace,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MedicaBlue,
-                                    selectedTextColor = MedicaBlue,
-                                    indicatorColor = MedicaBlue.copy(alpha = 0.2f),
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-
-                            NavigationBarItem(
-                                selected = currentTab == MainTab.VAULT,
-                                onClick = { viewModel.switchTab(MainTab.VAULT) },
-                                icon = {
-                                    Icon(
-                                        imageVector = if (currentTab == MainTab.VAULT) Icons.Filled.MedicalServices else Icons.Outlined.MedicalServices,
-                                        contentDescription = "Vault"
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        text = "VAULT",
-                                        fontFamily = FontFamily.Monospace,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MedicaBlue,
-                                    selectedTextColor = MedicaBlue,
-                                    indicatorColor = MedicaBlue.copy(alpha = 0.2f),
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-
-                            NavigationBarItem(
-                                selected = currentTab == MainTab.SETTINGS,
-                                onClick = { viewModel.switchTab(MainTab.SETTINGS) },
-                                icon = {
-                                    Icon(
-                                        imageVector = if (currentTab == MainTab.SETTINGS) Icons.Filled.Settings else Icons.Outlined.Settings,
-                                        contentDescription = "Settings"
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        text = "SETTINGS",
-                                        fontFamily = FontFamily.Monospace,
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MedicaBlue,
-                                    selectedTextColor = MedicaBlue,
-                                    indicatorColor = MedicaBlue.copy(alpha = 0.2f),
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-                        }
-                    }
-                }
-            ) { innerPadding ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)
-                ) {
-                    ScreenContent(screen = currentScreen, viewModel = viewModel)
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                when (currentTab) {
+                    MainTab.HOME -> HomeScreen(viewModel = viewModel)
+                    MainTab.CASES -> CasesScreen(viewModel = viewModel)
+                    MainTab.VAULT -> MedicalVaultScreen(viewModel = viewModel)
+                    MainTab.SETTINGS -> GeneralSettingsScreen(viewModel = viewModel)
                 }
             }
         }
-    }
-}
-
-@Composable
-fun ScreenContent(
-    screen: Screen,
-    viewModel: MedicaViewModel
-) {
-    when (screen) {
-        is Screen.Home -> HomeScreen(viewModel = viewModel)
-        is Screen.CasesList -> CaseHistoryScreen(viewModel = viewModel)
-        is Screen.VaultList -> KnowledgeVaultScreen(viewModel = viewModel)
-        is Screen.Settings -> SettingsScreen(viewModel = viewModel)
-        is Screen.NewCase -> NewCaseScreen(viewModel = viewModel)
-        is Screen.MediaReview -> MediaReviewScreen(viewModel = viewModel)
-        is Screen.Analysis -> AnalysisScreen(viewModel = viewModel)
-        is Screen.Result -> ResultScreen(caseId = screen.caseId, viewModel = viewModel)
-        is Screen.EvidenceViewer -> EvidenceViewerScreen(
-            assetId = screen.assetId,
-            fromCaseId = screen.fromCaseId,
-            viewModel = viewModel
-        )
-        is Screen.FlowchartViewer -> FlowchartViewerScreen(
-            assetId = screen.assetId,
-            viewModel = viewModel
-        )
-        is Screen.VaultDetail -> VaultDetailScreen(
-            assetId = screen.assetId,
-            viewModel = viewModel
-        )
-        is Screen.CaseDetail -> CaseDetailScreen(
-            caseId = screen.caseId,
-            viewModel = viewModel
-        )
-        is Screen.Escalation -> EscalationScreen(
-            caseId = screen.caseId,
-            viewModel = viewModel
-        )
     }
 }
