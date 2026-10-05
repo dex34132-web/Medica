@@ -142,4 +142,120 @@ class ExampleRobolectricTest {
         assertTrue(response.payload?.immediateActions?.isNotEmpty() == true)
         assertTrue(response.payload?.retrievedEvidence?.isNotEmpty() == true)
     }
+
+    @Test
+    fun `device capability detection inspects hardware and classifies device tier`() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val cap = com.example.ondevice.hardware.DeviceCapabilityDetector.detectCapabilities(context)
+        assertNotNull(cap)
+        assertTrue(cap.totalRamGb > 0f)
+        assertTrue(cap.availableRamGb > 0f)
+        assertNotNull(cap.acceleratorType)
+        assertNotNull(cap.deviceTier)
+        assertTrue(cap.supportedRuntimes.isNotEmpty())
+        assertTrue(cap.recommendedModelId.isNotBlank())
+    }
+
+    @Test
+    fun `local model manager supports quantized variants and verifies integrity`() {
+        val catalog = com.example.ondevice.manager.LocalModelManager.getCatalog()
+        assertTrue(catalog.size >= 3)
+        assertTrue(catalog.any { it.quantization.contains("INT4") || it.quantization.contains("Q4") })
+        val active = com.example.ondevice.manager.LocalModelManager.activeModel.value
+        assertNotNull(active)
+        assertTrue(com.example.ondevice.manager.LocalModelManager.verifyModelIntegrity(active))
+    }
+
+    @Test
+    fun `comprehensive local medical vault contains all 9 required clinical modalities`() {
+        val assets = com.example.ondevice.vault.ComprehensiveLocalMedicalVault.getAllAssets()
+        assertTrue(assets.size >= 9)
+
+        val types = assets.map { it.type }.toSet()
+        assertTrue(types.contains(com.example.ondevice.models.KnowledgeVaultType.PROTOCOL))
+        assertTrue(types.contains(com.example.ondevice.models.KnowledgeVaultType.DOCUMENT))
+        assertTrue(types.contains(com.example.ondevice.models.KnowledgeVaultType.IMAGE))
+        assertTrue(types.contains(com.example.ondevice.models.KnowledgeVaultType.DIAGRAM))
+        assertTrue(types.contains(com.example.ondevice.models.KnowledgeVaultType.FLOWCHART))
+        assertTrue(types.contains(com.example.ondevice.models.KnowledgeVaultType.DECISION_TREE))
+        assertTrue(types.contains(com.example.ondevice.models.KnowledgeVaultType.VIDEO))
+        assertTrue(types.contains(com.example.ondevice.models.KnowledgeVaultType.AUDIO))
+        assertTrue(types.contains(com.example.ondevice.models.KnowledgeVaultType.STRUCTURED_DATA))
+
+        // Check authentic procedures
+        val cpr = assets.find { it.title.contains("CPR") }
+        assertNotNull(cpr)
+        assertTrue(cpr?.clinicalSteps?.isNotEmpty() == true)
+
+        val tourniquet = assets.find { it.title.contains("Tourniquet") }
+        assertNotNull(tourniquet)
+        assertTrue(tourniquet?.clinicalSteps?.isNotEmpty() == true)
+    }
+
+    @Test
+    fun `local rag engine executes multimodal bounded context assembly`() {
+        val media = listOf(
+            com.example.ondevice.models.LocalMediaInput(
+                "m1",
+                com.example.ondevice.models.ModalityType.AUDIO,
+                "breath.m4a",
+                "High-pitch inspiratory stridor peak"
+            )
+        )
+        val context = com.example.ondevice.rag.LocalRagEngine.buildLocalContext(
+            caseId = "TEST-AIRGAP-01",
+            chiefComplaint = "Severe Upper Airway Stridor and Anaphylaxis",
+            demographics = "(F, 28)",
+            observations = "Facial urticaria and laryngeal edema",
+            attachedMedia = media
+        )
+
+        assertNotNull(context)
+        assertEquals("TEST-AIRGAP-01", context.caseId)
+        assertTrue(context.retrievedKnowledge.isNotEmpty())
+        assertTrue(context.retrievedKnowledge.size <= 3) // strictly bounded
+        assertTrue(context.serverSidePolicyReplica.isNotBlank())
+    }
+
+    @Test
+    fun `local on-device inference runs end to end completely air-gapped`() = runBlocking {
+        val media = listOf(
+            com.example.ondevice.models.LocalMediaInput(
+                "m1",
+                com.example.ondevice.models.ModalityType.IMAGE,
+                "wound.jpg",
+                "Arterial pulsatile bleeding thigh"
+            )
+        )
+        val context = com.example.ondevice.rag.LocalRagEngine.buildLocalContext(
+            caseId = "TEST-AIRGAP-02",
+            chiefComplaint = "Massive Femoral Laceration with Profuse Bleeding",
+            demographics = "(M, 34)",
+            observations = "Systolic BP 82, pale cool clammy, rapid pulse",
+            attachedMedia = media
+        )
+        val modelSpec = com.example.ondevice.manager.LocalModelManager.activeModel.value
+
+        val result = com.example.ondevice.runtime.LocalInferenceEngine.synthesizeLocalReasoning(
+            context = context,
+            modelSpec = modelSpec,
+            runtime = modelSpec.targetRuntime
+        )
+
+        assertNotNull(result)
+        assertEquals(com.example.model.UrgencyLevel.CRITICAL, result.urgencyLevel)
+        assertTrue(result.isFullyAirGapped)
+        assertTrue(result.immediateActions.isNotEmpty())
+        assertTrue(result.immediateActions.any { it.contains("Tourniquet") || it.contains("pressure") || it.contains("hemorrhage") || it.contains("bandage") || it.contains("comfort") })
+        assertTrue(result.retrievedEvidence.isNotEmpty())
+    }
+
+    @Test
+    fun `local privacy manager guarantees zero cloud requests and zero device keys`() {
+        assertFalse(com.example.ondevice.security.LocalPrivacySecurityManager.isNetworkRequired())
+        val guarantees = com.example.ondevice.security.LocalPrivacySecurityManager.getPrivacyGuarantees()
+        assertEquals(5, guarantees.size)
+        assertTrue(guarantees.any { it.boundaryName.contains("Zero Cloud API Key") })
+        assertTrue(guarantees.any { it.boundaryName.contains("On-Device Case Data") })
+    }
 }

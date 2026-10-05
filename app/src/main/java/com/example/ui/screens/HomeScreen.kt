@@ -25,12 +25,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MedicalInformation
 import androidx.compose.material.icons.filled.MedicalServices
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
@@ -156,15 +158,15 @@ fun HomeScreen(
             }
         }
 
-        // 2B. PRODUCTION BACKEND ARCHITECTURE CARD
+        // 2B. ON-DEVICE AI ARCHITECTURE CARD (PRIMARY LOCAL FIELD ENGINE)
         item {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
-                    .border(1.2.dp, MedicaAccentBlue.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
-                    .clickable { viewModel.openArchitectureScreen() }
-                    .testTag("home_backend_architecture_card"),
+                    .border(1.2.dp, MedicaGreenDot.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                    .clickable { viewModel.openOnDeviceArchitectureScreen() }
+                    .testTag("home_ondevice_architecture_card"),
                 color = MaterialTheme.colorScheme.surface
             ) {
                 Row(
@@ -182,13 +184,13 @@ fun HomeScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(MedicaAccentBlue.copy(alpha = 0.15f)),
+                                .background(MedicaGreenDot.copy(alpha = 0.15f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Default.AccountTree,
-                                contentDescription = "Backend Architecture",
-                                tint = MedicaAccentBlue,
+                                imageVector = Icons.Default.Memory,
+                                contentDescription = "On-Device Architecture",
+                                tint = MedicaGreenDot,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -196,7 +198,7 @@ fun HomeScreen(
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "Backend Architecture",
+                                    text = "On-Device AI Architecture",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -205,20 +207,20 @@ fun HomeScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(4.dp))
-                                        .background(MedicaAccentBlue.copy(alpha = 0.2f))
+                                        .background(MedicaGreenDot.copy(alpha = 0.2f))
                                         .padding(horizontal = 5.dp, vertical = 1.dp)
                                 ) {
                                     Text(
-                                        text = "LIVE",
+                                        text = "AIR-GAPPED",
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MedicaAccentBlue
+                                        color = MedicaGreenDot
                                     )
                                 }
                             }
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "API Gateway · AI Orchestrator · RAG · Storage",
+                                text = "Hardware Detection · Local RAG · Multimodal · Zero Cloud",
                                 fontSize = 12.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -227,9 +229,88 @@ fun HomeScreen(
 
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                        contentDescription = "Open Architecture",
-                        tint = MedicaAccentBlue,
+                        contentDescription = "Open On-Device Architecture",
+                        tint = MedicaGreenDot,
                         modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
+        }
+
+        // 2C. CLOUD BACKEND ARCHITECTURE CARD
+        item {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, MedicaAccentBlue.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                    .clickable { viewModel.openArchitectureScreen() }
+                    .testTag("home_backend_architecture_card"),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(MedicaAccentBlue.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Cloud,
+                                contentDescription = "Backend Architecture",
+                                tint = MedicaAccentBlue,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Cloud Backend Architecture",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(MedicaAccentBlue.copy(alpha = 0.15f))
+                                        .padding(horizontal = 5.dp, vertical = 1.dp)
+                                ) {
+                                    Text(
+                                        text = "CLOUD",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MedicaAccentBlue
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "API Gateway · AI Orchestrator · RAG · KMS Secrets",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                        contentDescription = "Open Cloud Architecture",
+                        tint = MedicaAccentBlue,
+                        modifier = Modifier.size(13.dp)
                     )
                 }
             }

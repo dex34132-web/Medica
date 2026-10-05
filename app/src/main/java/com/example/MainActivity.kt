@@ -44,6 +44,7 @@ import com.example.ui.screens.GeneralSettingsScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.MedicalVaultScreen
 import com.example.ui.screens.NewCaseScreen
+import com.example.ui.screens.OnDeviceArchitectureScreen
 import com.example.ui.theme.MedicaAccentBlue
 import com.example.ui.theme.MedicaBorderDark
 import com.example.ui.theme.MedicaCardDark
@@ -73,11 +74,13 @@ fun MedicaMainApp(viewModel: MedicaViewModel) {
     val currentTab by viewModel.currentTab.collectAsState()
     val showNewCase by viewModel.showNewCaseScreen.collectAsState()
     val showArchitecture by viewModel.showArchitectureScreen.collectAsState()
+    val showOnDeviceArchitecture by viewModel.showOnDeviceArchitectureScreen.collectAsState()
 
     // Handle back button
-    BackHandler(enabled = showArchitecture || showNewCase || currentTab != MainTab.HOME) {
+    BackHandler(enabled = showArchitecture || showOnDeviceArchitecture || showNewCase || currentTab != MainTab.HOME) {
         when {
             showArchitecture -> viewModel.closeArchitectureScreen()
+            showOnDeviceArchitecture -> viewModel.closeOnDeviceArchitectureScreen()
             showNewCase -> viewModel.closeNewCaseScreen()
             else -> viewModel.switchTab(MainTab.HOME)
         }
@@ -85,6 +88,8 @@ fun MedicaMainApp(viewModel: MedicaViewModel) {
 
     if (showArchitecture) {
         BackendArchitectureScreen(onNavigateBack = { viewModel.closeArchitectureScreen() })
+    } else if (showOnDeviceArchitecture) {
+        OnDeviceArchitectureScreen(onNavigateBack = { viewModel.closeOnDeviceArchitectureScreen() })
     } else if (showNewCase) {
         NewCaseScreen(viewModel = viewModel)
     } else {

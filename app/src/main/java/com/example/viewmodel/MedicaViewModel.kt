@@ -10,6 +10,14 @@ import com.example.model.MediaType
 import com.example.model.UploadedMedia
 import com.example.model.VaultCaseFile
 import com.example.model.VaultMediaCard
+import com.example.ondevice.manager.LocalModelManager
+import com.example.ondevice.models.LocalMediaInput
+import com.example.ondevice.models.LocalMedicaResult
+import com.example.ondevice.models.ModalityType
+import com.example.ondevice.models.MultimodalActionPlan
+import com.example.ondevice.neural.ExternalNeuralVaultNetwork
+import com.example.ondevice.rag.LocalRagEngine
+import com.example.ondevice.runtime.LocalInferenceEngine
 import com.example.service.CaseService
 import com.example.service.LocalCaseService
 import kotlinx.coroutines.delay
@@ -106,12 +114,102 @@ class MedicaViewModel(application: Application) : AndroidViewModel(application) 
     private val _showArchitectureScreen = MutableStateFlow(false)
     val showArchitectureScreen: StateFlow<Boolean> = _showArchitectureScreen.asStateFlow()
 
+    // On-Device Architecture Visualizer screen state
+    private val _showOnDeviceArchitectureScreen = MutableStateFlow(false)
+    val showOnDeviceArchitectureScreen: StateFlow<Boolean> = _showOnDeviceArchitectureScreen.asStateFlow()
+
     fun openArchitectureScreen() {
         _showArchitectureScreen.value = true
     }
 
     fun closeArchitectureScreen() {
         _showArchitectureScreen.value = false
+    }
+
+    fun openOnDeviceArchitectureScreen() {
+        _showOnDeviceArchitectureScreen.value = true
+    }
+
+    fun closeOnDeviceArchitectureScreen() {
+        _showOnDeviceArchitectureScreen.value = false
+    }
+
+    // On-device AI case assessment state
+    private val _activeCaseEvaluation = MutableStateFlow<LocalMedicaResult?>(null)
+    val activeCaseEvaluation: StateFlow<LocalMedicaResult?> = _activeCaseEvaluation.asStateFlow()
+
+    private val _evaluatingCaseId = MutableStateFlow<String?>(null)
+    val evaluatingCaseId: StateFlow<String?> = _evaluatingCaseId.asStateFlow()
+
+    fun evaluateCaseLocally(caseRecord: CaseRecord) {
+        viewModelScope.launch {
+            _evaluatingCaseId.value = caseRecord.id
+            delay(150)
+            val mediaInputs = caseRecord.mediaItems.map { item ->
+                val mod = when (item.type) {
+                    MediaType.PHOTO -> ModalityType.IMAGE
+                    MediaType.VIDEO -> ModalityType.VIDEO
+                    MediaType.AUDIO -> ModalityType.AUDIO
+                }
+                LocalMediaInput(item.id, mod, item.name, "Local captured file: ${item.durationOrSize}")
+            }
+            val contextScope = LocalRagEngine.buildLocalContext(
+                caseId = caseRecord.id,
+                chiefComplaint = caseRecord.title,
+                demographics = caseRecord.demographic,
+                observations = caseRecord.notes,
+                attachedMedia = mediaInputs
+            )
+            val model = LocalModelManager.activeModel.value
+            val result = LocalInferenceEngine.synthesizeLocalReasoning(
+                context = contextScope,
+                modelSpec = model,
+                runtime = model.targetRuntime
+            )
+            _activeCaseEvaluation.value = result
+            _evaluatingCaseId.value = null
+        }
+    }
+
+    fun dismissCaseEvaluation() {
+        _activeCaseEvaluation.value = null
+        _evaluatingCaseId.value = null
+    }
+
+    // External Neural Vault Query state
+    private val _neuralVaultQueryAnswer = MutableStateFlow<MultimodalActionPlan?>(null)
+    val neuralVaultQueryAnswer: StateFlow<MultimodalActionPlan?> = _neuralVaultQueryAnswer.asStateFlow()
+
+    private val _isNeuralVaultQuerying = MutableStateFlow(false)
+    val isNeuralVaultQuerying: StateFlow<Boolean> = _isNeuralVaultQuerying.asStateFlow()
+
+    fun queryNeuralVault(query: String) {
+        viewModelScope.launch {
+            _isNeuralVaultQuerying.value = true
+            val plan = ExternalNeuralVaultNetwork.queryNeuralVault(query)
+            _neuralVaultQueryAnswer.value = plan
+            _isNeuralVaultQuerying.value = false
+        }
+    }
+
+    fun dismissNeuralVaultAnswer() {
+        _neuralVaultQueryAnswer.value = null
+        _isNeuralVaultQuerying.value = false
+    }
+
+    // Vault search and filtering state
+    private val _vaultSearchQuery = MutableStateFlow("")
+    val vaultSearchQuery: StateFlow<String> = _vaultSearchQuery.asStateFlow()
+
+    private val _selectedVaultTypeFilter = MutableStateFlow<String?>("ALL")
+    val selectedVaultTypeFilter: StateFlow<String?> = _selectedVaultTypeFilter.asStateFlow()
+
+    fun setVaultSearchQuery(q: String) {
+        _vaultSearchQuery.value = q
+    }
+
+    fun setVaultTypeFilter(filter: String?) {
+        _selectedVaultTypeFilter.value = filter
     }
 
     init {
