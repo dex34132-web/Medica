@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -247,17 +248,62 @@ fun CasesScreen(
         ) {
             if (filteredList.isEmpty()) {
                 item {
-                    Box(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 40.dp),
-                        contentAlignment = Alignment.Center
+                            .padding(vertical = 48.dp, horizontal = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
+                        Surface(
+                            modifier = Modifier.size(64.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.MedicalServices,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MedicaAccentBlue
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "No cases found in this section.",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp
+                            text = if (searchQuery.isNotBlank()) "No Matching Cases Found" else "No Triage Cases Recorded",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = if (searchQuery.isNotBlank()) 
+                                "Try adjusting your search terms or filters." 
+                            else 
+                                "Patient triage cases recorded in the field will appear here. Encrypted locally with zero cloud egress.",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 13.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            lineHeight = 18.sp
+                        )
+                        if (searchQuery.isBlank()) {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Button(
+                                onClick = { viewModel.openNewCaseScreen() },
+                                colors = ButtonDefaults.buttonColors(containerColor = MedicaAccentBlue),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp),
+                                    tint = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Record First Case", fontSize = 13.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
                     }
                 }
             } else {

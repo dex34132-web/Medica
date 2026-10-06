@@ -121,7 +121,7 @@ fun NewCaseScreen(
                     OutlinedTextField(
                         value = draftTitle,
                         onValueChange = { viewModel.draftTitle.value = it },
-                        placeholder = { Text("e.g. Male, 54, Chest Pain", fontSize = 14.sp) },
+                        placeholder = { Text("e.g. Compound fracture, anaphylaxis, head trauma...", fontSize = 14.sp) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth().testTag("new_case_title_input"),
                         colors = OutlinedTextFieldDefaults.colors(

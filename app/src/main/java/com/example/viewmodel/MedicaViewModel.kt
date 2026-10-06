@@ -175,8 +175,8 @@ class MedicaViewModel(application: Application) : AndroidViewModel(application) 
     val showNewCaseScreen: StateFlow<Boolean> = _showNewCaseScreen.asStateFlow()
 
     // Draft Case inputs
-    var draftTitle = MutableStateFlow("Male, 54, Chest Pain")
-    var draftDemographic = MutableStateFlow("(M, 54)")
+    var draftTitle = MutableStateFlow("")
+    var draftDemographic = MutableStateFlow("")
     var draftNotes = MutableStateFlow("")
     private val _draftMedia = MutableStateFlow<List<UploadedMedia>>(emptyList())
     val draftMedia: StateFlow<List<UploadedMedia>> = _draftMedia.asStateFlow()
@@ -194,7 +194,7 @@ class MedicaViewModel(application: Application) : AndroidViewModel(application) 
         VaultMediaCard("vm_1", "Video Tutorial: Chest Pain Assessment", "VIDEO", "12:40 HD", "12:40"),
         VaultMediaCard("vm_2", "Interactive Flowchart: Abdominal Pain Triage", "FLOWCHART", "8 Nodes · Triage Guide"),
         VaultMediaCard("vm_3", "Anatomy Image Pack: Spinal Cord", "IMAGE", "6 High-Res References"),
-        VaultMediaCard("vm_4", "Case Study: Male, 54, Chest Pain", "VIDEO", "08:15 Clinical Breakdown", "08:15")
+        VaultMediaCard("vm_4", "Procedural Guide: Emergency Thoracostomy", "VIDEO", "08:15 Clinical Breakdown", "08:15")
     )
 
     // Settings Screen AI Models
@@ -354,8 +354,8 @@ class MedicaViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun openNewCaseScreen() {
-        draftTitle.value = "Male, 54, Chest Pain"
-        draftDemographic.value = "(M, 54)"
+        draftTitle.value = ""
+        draftDemographic.value = ""
         draftNotes.value = ""
         _draftMedia.value = emptyList()
         _showNewCaseScreen.value = true
@@ -410,12 +410,12 @@ class MedicaViewModel(application: Application) : AndroidViewModel(application) 
             val num = (78900..79999).random()
             val newCase = CaseRecord(
                 id = "MED-$num",
-                title = draftTitle.value.ifBlank { "Acute Case Assessment" },
-                demographic = draftDemographic.value.ifBlank { "(M, 54)" },
+                title = draftTitle.value.ifBlank { "Triage Case Assessment" },
+                demographic = draftDemographic.value.ifBlank { "Adult" },
                 timeAgo = "Just now",
                 timestampMs = System.currentTimeMillis(),
                 status = "Active",
-                notes = draftNotes.value.ifBlank { "Field triage observations and attached clinical uploads." },
+                notes = draftNotes.value.ifBlank { "Clinical observations and attached evidence." },
                 mediaItems = _draftMedia.value
             )
             caseService.saveCase(newCase)
