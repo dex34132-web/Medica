@@ -125,7 +125,7 @@ fun CasesScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             IconButton(
-                onClick = { viewModel.switchTab(MainTab.HOME) },
+                onClick = { viewModel.switchTab(MainTab.CHAT) },
                 modifier = Modifier.testTag("cases_back_to_home")
             ) {
                 Icon(

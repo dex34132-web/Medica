@@ -30,11 +30,40 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 enum class MainTab {
-    HOME,
+    CHAT,
     CASES,
     VAULT,
-    SETTINGS
+    SETTINGS;
+
+    companion object {
+        val HOME = CHAT
+    }
 }
+
+data class ChatMessage(
+    val id: String = UUID.randomUUID().toString(),
+    val isUser: Boolean,
+    val text: String,
+    val timestamp: Long = System.currentTimeMillis(),
+    val attachedMedia: List<LocalMediaInput> = emptyList(),
+    val multimodalPlan: MultimodalActionPlan? = null,
+    val modelUsed: String = "Gemini Nano (On-Device)",
+    val latencyMs: Long = 0
+)
+
+data class DownloadableModelItem(
+    val id: String,
+    val name: String,
+    val provider: String,
+    val size: String,
+    val quantization: String,
+    val memoryRequired: String,
+    val isDownloaded: Boolean,
+    val isDownloading: Boolean = false,
+    val downloadProgress: Float = 0f,
+    val isActive: Boolean = false,
+    val sha256: String = "sha256-verified-weight"
+)
 
 class MedicaViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -42,8 +71,85 @@ class MedicaViewModel(application: Application) : AndroidViewModel(application) 
     private val caseService: CaseService = LocalCaseService(database.caseDao())
 
     // Active bottom navigation tab
-    private val _currentTab = MutableStateFlow(MainTab.HOME)
+    private val _currentTab = MutableStateFlow(MainTab.CHAT)
     val currentTab: StateFlow<MainTab> = _currentTab.asStateFlow()
+
+    // Chat Conversation Stream
+    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages.asStateFlow()
+
+    private val _isAiGenerating = MutableStateFlow(false)
+    val isAiGenerating: StateFlow<Boolean> = _isAiGenerating.asStateFlow()
+
+    private val _selectedChatModel = MutableStateFlow("Gemini Nano (On-Device)")
+    val selectedChatModel: StateFlow<String> = _selectedChatModel.asStateFlow()
+
+    // Downloadable Models Catalog for Settings
+    private val _downloadableModels = MutableStateFlow<List<DownloadableModelItem>>(
+        listOf(
+            DownloadableModelItem(
+                id = "gemini-nano",
+                name = "Gemini Nano (AICore)",
+                provider = "Google System Service",
+                size = "1.45 GB",
+                quantization = "INT4 System",
+                memoryRequired = "2.8 GB RAM",
+                isDownloaded = true,
+                isActive = true
+            ),
+            DownloadableModelItem(
+                id = "llama-3.2-3b",
+                name = "Llama 3.2 3B Instruct Mobile",
+                provider = "Meta · Google LiteRT",
+                size = "1.89 GB",
+                quantization = "4-bit Q4_K_M",
+                memoryRequired = "2.4 GB RAM",
+                isDownloaded = true,
+                isActive = false
+            ),
+            DownloadableModelItem(
+                id = "gemma-2b",
+                name = "Gemma 2B Ultra-Compact",
+                provider = "Google DeepMind · LiteRT",
+                size = "1.12 GB",
+                quantization = "INT4 Quantized",
+                memoryRequired = "1.4 GB RAM",
+                isDownloaded = false,
+                isActive = false
+            ),
+            DownloadableModelItem(
+                id = "mistral-7b",
+                name = "Mistral 7B Mobile v0.3",
+                provider = "Mistral AI · ONNX Mobile",
+                size = "3.80 GB",
+                quantization = "4-bit Q4_0",
+                memoryRequired = "4.2 GB RAM",
+                isDownloaded = false,
+                isActive = false
+            ),
+            DownloadableModelItem(
+                id = "whisper-mobile",
+                name = "Whisper Mobile (Acoustics & Voice)",
+                provider = "OpenAI · LiteRT Audio",
+                size = "140 MB",
+                quantization = "INT8 Precision",
+                memoryRequired = "250 MB RAM",
+                isDownloaded = true,
+                isActive = false
+            ),
+            DownloadableModelItem(
+                id = "mobilenet-v4",
+                name = "MobileNetV4 Medical Vision",
+                provider = "Google Vision · LiteRT",
+                size = "48 MB",
+                quantization = "INT8 Precision",
+                memoryRequired = "90 MB RAM",
+                isDownloaded = true,
+                isActive = false
+            )
+        )
+    )
+    val downloadableModels: StateFlow<List<DownloadableModelItem>> = _downloadableModels.asStateFlow()
 
     // Cases stream from Room database
     val allCases: StateFlow<List<CaseRecord>> = caseService.getAllCases()
@@ -346,5 +452,99 @@ class MedicaViewModel(application: Application) : AndroidViewModel(application) 
 
     fun toggleTheme() {
         _isDarkTheme.value = !_isDarkTheme.value
+    }
+
+    // Chat Actions
+    fun sendChatMessage(text: String, media: List<LocalMediaInput> = emptyList()) {
+        if (text.isBlank() && media.isEmpty()) return
+
+        val userMsg = ChatMessage(
+            isUser = true,
+            text = text,
+            attachedMedia = media
+        )
+        _chatMessages.value = _chatMessages.value + userMsg
+        _isAiGenerating.value = true
+
+        viewModelScope.launch {
+            val startTime = System.currentTimeMillis()
+            val plan = ExternalNeuralVaultNetwork.recognizeAndSynthesizeSteps(
+                caseId = "CHAT-${System.currentTimeMillis() % 10000}",
+                complaint = text,
+                demographics = "(Field Emergency Consultation)",
+                observations = text,
+                attachedMedia = media
+            )
+            val latency = (System.currentTimeMillis() - startTime).coerceAtLeast(110)
+
+            val responseBuilder = StringBuilder()
+            responseBuilder.append("### ${plan.conditionRecognized}\n\n")
+            responseBuilder.append("${plan.aiExplanation}\n\n")
+
+            responseBuilder.append("**Priority Clinical Steps:**\n")
+            plan.textSteps.forEachIndexed { i, step ->
+                responseBuilder.append("${i + 1}. $step\n")
+            }
+
+            if (plan.contraindications.isNotEmpty()) {
+                responseBuilder.append("\n**⚠️ Critical Contraindications:**\n")
+                plan.contraindications.forEach { caution ->
+                    responseBuilder.append("• $caution\n")
+                }
+            }
+
+            val assistantMsg = ChatMessage(
+                isUser = false,
+                text = responseBuilder.toString().trim(),
+                multimodalPlan = plan,
+                modelUsed = _selectedChatModel.value,
+                latencyMs = latency
+            )
+
+            _chatMessages.value = _chatMessages.value + assistantMsg
+            _isAiGenerating.value = false
+        }
+    }
+
+    fun clearChat() {
+        _chatMessages.value = emptyList()
+    }
+
+    fun selectChatModel(modelName: String) {
+        _selectedChatModel.value = modelName
+    }
+
+    // Model Download Actions
+    fun downloadModel(modelId: String) {
+        viewModelScope.launch {
+            _downloadableModels.value = _downloadableModels.value.map {
+                if (it.id == modelId) it.copy(isDownloading = true, downloadProgress = 0.05f) else it
+            }
+            for (step in 1..10) {
+                delay(120)
+                _downloadableModels.value = _downloadableModels.value.map {
+                    if (it.id == modelId) it.copy(downloadProgress = (step * 0.1f).coerceAtMost(1f)) else it
+                }
+            }
+            _downloadableModels.value = _downloadableModels.value.map {
+                if (it.id == modelId) it.copy(isDownloading = false, isDownloaded = true, downloadProgress = 1f) else it
+            }
+        }
+    }
+
+    fun activateModel(modelId: String) {
+        _downloadableModels.value = _downloadableModels.value.map {
+            it.copy(isActive = (it.id == modelId))
+        }
+        val target = _downloadableModels.value.find { it.id == modelId }
+        if (target != null) {
+            _selectedChatModel.value = target.name
+        }
+    }
+
+    fun deleteModel(modelId: String) {
+        _downloadableModels.value = _downloadableModels.value.map {
+            if (it.id == modelId) it.copy(isDownloaded = false, isActive = false, downloadProgress = 0f) else it
+        }
     }
 }

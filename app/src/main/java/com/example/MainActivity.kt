@@ -14,12 +14,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.MedicalServices
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -38,17 +38,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.screens.BackendArchitectureScreen
 import com.example.ui.screens.CasesScreen
+import com.example.ui.screens.ChatScreen
 import com.example.ui.screens.GeneralSettingsScreen
-import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.MedicalVaultScreen
 import com.example.ui.screens.NewCaseScreen
 import com.example.ui.screens.OnDeviceArchitectureScreen
 import com.example.ui.theme.MedicaAccentBlue
-import com.example.ui.theme.MedicaBorderDark
-import com.example.ui.theme.MedicaCardDark
-import com.example.ui.theme.MedicaTextMuted
 import com.example.ui.theme.MedicaTheme
 import com.example.viewmodel.MainTab
 import com.example.viewmodel.MedicaViewModel
@@ -73,22 +69,18 @@ class MainActivity : ComponentActivity() {
 fun MedicaMainApp(viewModel: MedicaViewModel) {
     val currentTab by viewModel.currentTab.collectAsState()
     val showNewCase by viewModel.showNewCaseScreen.collectAsState()
-    val showArchitecture by viewModel.showArchitectureScreen.collectAsState()
     val showOnDeviceArchitecture by viewModel.showOnDeviceArchitectureScreen.collectAsState()
 
-    // Handle back button
-    BackHandler(enabled = showArchitecture || showOnDeviceArchitecture || showNewCase || currentTab != MainTab.HOME) {
+    // Handle back button: return to CHAT if on secondary screen or sub-tab
+    BackHandler(enabled = showOnDeviceArchitecture || showNewCase || currentTab != MainTab.CHAT) {
         when {
-            showArchitecture -> viewModel.closeArchitectureScreen()
             showOnDeviceArchitecture -> viewModel.closeOnDeviceArchitectureScreen()
             showNewCase -> viewModel.closeNewCaseScreen()
-            else -> viewModel.switchTab(MainTab.HOME)
+            else -> viewModel.switchTab(MainTab.CHAT)
         }
     }
 
-    if (showArchitecture) {
-        BackendArchitectureScreen(onNavigateBack = { viewModel.closeArchitectureScreen() })
-    } else if (showOnDeviceArchitecture) {
+    if (showOnDeviceArchitecture) {
         OnDeviceArchitectureScreen(onNavigateBack = { viewModel.closeOnDeviceArchitectureScreen() })
     } else if (showNewCase) {
         NewCaseScreen(viewModel = viewModel)
@@ -104,22 +96,22 @@ fun MedicaMainApp(viewModel: MedicaViewModel) {
                     containerColor = MaterialTheme.colorScheme.background,
                     tonalElevation = 0.dp
                 ) {
-                    // 1. Home Tab
+                    // 1. Chat Tab (Highlighted primary interface)
                     NavigationBarItem(
-                        selected = currentTab == MainTab.HOME,
-                        onClick = { viewModel.switchTab(MainTab.HOME) },
+                        selected = currentTab == MainTab.CHAT,
+                        onClick = { viewModel.switchTab(MainTab.CHAT) },
                         icon = {
                             Icon(
-                                imageVector = if (currentTab == MainTab.HOME) Icons.Filled.Home else Icons.Outlined.Home,
-                                contentDescription = "Home",
+                                imageVector = if (currentTab == MainTab.CHAT) Icons.Filled.ChatBubble else Icons.Outlined.ChatBubbleOutline,
+                                contentDescription = "Chat",
                                 modifier = Modifier.size(22.dp)
                             )
                         },
                         label = {
                             Text(
-                                text = "Home",
+                                text = "Chat",
                                 fontSize = 11.sp,
-                                fontWeight = if (currentTab == MainTab.HOME) FontWeight.SemiBold else FontWeight.Normal
+                                fontWeight = if (currentTab == MainTab.CHAT) FontWeight.SemiBold else FontWeight.Normal
                             )
                         },
                         colors = NavigationBarItemDefaults.colors(
@@ -129,7 +121,7 @@ fun MedicaMainApp(viewModel: MedicaViewModel) {
                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                        modifier = Modifier.testTag("nav_tab_home")
+                        modifier = Modifier.testTag("nav_tab_chat")
                     )
 
                     // 2. Cases Tab
@@ -224,7 +216,7 @@ fun MedicaMainApp(viewModel: MedicaViewModel) {
                     .padding(innerPadding)
             ) {
                 when (currentTab) {
-                    MainTab.HOME -> HomeScreen(viewModel = viewModel)
+                    MainTab.CHAT -> ChatScreen(viewModel = viewModel)
                     MainTab.CASES -> CasesScreen(viewModel = viewModel)
                     MainTab.VAULT -> MedicalVaultScreen(viewModel = viewModel)
                     MainTab.SETTINGS -> GeneralSettingsScreen(viewModel = viewModel)
