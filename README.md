@@ -1,104 +1,112 @@
 # Medica: 100% On-Device Multimodal Emergency Medical Decision Support
 
-[![Android CI](https://img.shields.io/badge/Build-Passing-brightgreen.svg)]()
 [![Platform](https://img.shields.io/badge/Platform-Android_14%2B-blue.svg)]()
 [![Language](https://img.shields.io/badge/Language-Kotlin_2.2-purple.svg)]()
 [![UI Toolkit](https://img.shields.io/badge/UI-Jetpack_Compose_Material_3-4285F4.svg)]()
 [![Database](https://img.shields.io/badge/Database-Room_2.7_FTS4-orange.svg)]()
 [![Offline First](https://img.shields.io/badge/Network-100%25_Air--Gapped_Offline-green.svg)]()
-[![License](https://img.shields.io/badge/License-Apache_2.0-lightgrey.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Medica** is a mission-critical, air-gapped clinical intelligence and triage platform built for field medics, wilderness first responders, disaster relief teams, and austere environments where cellular connectivity, internet access, and cloud APIs are non-existent.
+> **Medica** is a mission-critical, air-gapped clinical intelligence and triage application designed for field medics, wilderness first responders, disaster relief crews, and austere environments where cellular connectivity, internet access, and cloud APIs do not exist.
 
 ---
 
-## 📥 APK Download & Quick Start
+## 📱 App Screenshots
 
-You can immediately install and run Medica on any Android 14+ device (ARM64 / x86_64).
+| 💬 ChatGPT-Style Clinical Chat | 📚 25.6 GB Medical Knowledge Vault |
+|:---:|:---:|
+| <img src="screenshots/01_chat_interface.jpg" width="360" alt="Medica Chat Screen" /> | <img src="screenshots/02_medical_vault.jpg" width="360" alt="Medica Medical Vault Screen" /> |
+| **Instant emergency response with anatomical landmarks and contraindications** | **3,200+ offline protocols, decision trees, and surgical videos** |
 
-### Direct APK Download
-- **Latest Debug Build**: [`.build-outputs/app-debug.apk`](.build-outputs/app-debug.apk)
-- **AI Studio Web Interface**: Navigate to the top-right settings menu in AI Studio and select **Export > Download APK**.
+| ⚙️ On-Device AI Models Download Manager | 📋 Patient Triage Case Records |
+|:---:|:---:|
+| <img src="screenshots/03_settings_models.jpg" width="360" alt="Medica Settings Screen" /> | <img src="screenshots/04_cases_records.jpg" width="360" alt="Medica Cases Screen" /> |
+| **Quantized models (Gemini Nano, Llama 3.2, Mistral) & SHA-256 verification** | **Real patient triage records with encrypted local Room storage** |
 
-### Sideloading via ADB
-```bash
-# Connect your Android device or start an emulator
-adb install -r .build-outputs/app-debug.apk
+---
 
-# Launch Medica
-adb shell monkey -p com.aistudio.weathertracker.kxmpzq 1
-```
+## 📥 Download APK
+
+The application is pre-compiled and packaged directly inside this repository.
+
+### Direct APK Files in Repository
+- **Root APK**: [**`medica.apk`**](medica.apk) *(23 MB)*
+- **Releases Directory**: [**`releases/medica.apk`**](releases/medica.apk) *(23 MB)*
+- **Build Output Directory**: [**`.build-outputs/app-debug.apk`**](.build-outputs/app-debug.apk) *(23 MB)*
+
+### How to Install on Your Android Device
+1. Tap or click on [**`medica.apk`**](medica.apk) above to download the file directly to your phone.
+2. Open your device's **Downloads** or **Files** app and tap **`medica.apk`**.
+3. When prompted by Android, allow *Install from unknown sources* for your browser or file manager.
+4. Tap **Install**, then tap **Open** to launch Medica immediately.
+5. You can now use all clinical guidance, offline search, and models with **zero internet or mobile data required**.
 
 ---
 
 ## 🎯 Why Medica Was Made
 
 ### The Problem
-In life-or-death emergency scenarios—such as mass-casualty triage, remote mountain search-and-rescue, post-earthquake devastation, military combat casualty care (TCCC), or maritime operations—traditional cloud-powered medical AI platforms are useless:
-1. **Total Connectivity Failure**: Cloud APIs (OpenAI, Gemini Cloud, Claude) require continuous internet connectivity. In disaster zones or deep wilderness, there is zero cellular signal.
-2. **HIPAA & Patient Privacy Violations**: Transmitting identifying clinical notes, wound photography, or patient vitals over third-party cloud servers risks security breaches and regulatory non-compliance.
-3. **High Latency & Cloud Costs**: High-stress resuscitation protocols (e.g., CPR rhythm cadences, tension pneumothorax decompression, arterial tourniquet application) require sub-second guidance, not 4-second cloud round-trips.
+During severe medical emergencies in disconnected environments—such as search-and-rescue missions, earthquakes, hurricanes, flight emergencies, offshore vessels, and tactical combat casualty care (TCCC):
+1. **Zero Cellular or Satellite Connectivity**: Cloud-dependent AI solutions (OpenAI, Claude, cloud Gemini) stop working the moment connectivity drops. A medic cannot rely on a service that goes dark in remote areas.
+2. **Medical Privacy & Regulatory Compliance (HIPAA)**: Uploading patient trauma photos, vital signs, and clinical recordings to commercial cloud servers introduces legal liability and privacy risks.
+3. **Emergency Latency Demands**: When managing arterial hemorrhages, tension pneumothoraces, or cardiac arrests, decisions must be made in milliseconds. Waiting several seconds for cloud round-trips can be fatal.
 
-### The Solution: Zero-Egress On-Device Intelligence
-Medica was engineered from the ground up to operate **entirely on device silicon**:
-- **Zero Network Required**: All neural network inference, vector searches, and knowledge lookups execute within the device's CPU, GPU, and NPU.
-- **Air-Gapped Guarantee**: The application contains no remote network calls, tracking telemetry, or third-party cloud analytics.
-- **Instantaneous Clinical Guidance**: Deterministic, multi-stage clinical algorithms and localized quantized LLMs deliver immediate emergency action plans in under 150ms.
+### The Solution: 100% Air-Gapped Intelligence
+Medica was built to guarantee that high-level clinical decision support is always available in your pocket:
+- **Zero Network Required**: All AI models, vector search indexing, and clinical rules execute locally on device silicon (CPU, GPU, NPU).
+- **Zero Cloud Egress**: No telemetry, no third-party tracking, and no external servers. Patient data never leaves the physical hardware.
+- **Instantaneous Guidance**: Delivers structured resuscitation steps, procedural video guides, and contraindications in under 150 milliseconds.
 
 ---
 
-## ⚡ Core Features & Capabilities
+## ⚡ Core Features
 
-### 💬 ChatGPT-Grade Conversational Interface (`ChatScreen`)
-- **Familiar, Human-Crafted UX**: Designed to feel as responsive and intuitive as the official ChatGPT mobile client, without generic AI tropes or garish aesthetic styling.
-- **Model Selector Pill**: Seamlessly switch between active quantized on-device models directly from the top app bar.
-- **Multimodal Evidence Intake**: Bottom sheet drawer enabling attachments of:
-  - 📷 **High-Resolution Trauma & Wound Photos**
-  - 📹 **Respiratory & Procedural Video Clips**
-  - 🎙️ **Auscultation & Voice Clinical Voice Memos**
-- **Structured Action Plans**: Outputs prioritized step-by-step clinical procedures, anatomical landmarks (e.g., *sternum midpoint, 2nd intercostal space*), procedural cadence cues, and prominent contraindications.
-- **Smart Clinical Prompts**: Instant suggestion chips for rapid triage (*STEMI 12-lead ECG assessment*, *anaphylaxis pediatric dosing*, *tension pneumothorax seal protocol*).
+### 💬 ChatGPT-Grade Clinical Conversation
+- **Human-Crafted, Polished UI**: Clean, intuitive mobile experience modeled after modern conversation apps, without clutter or artificial aesthetic tropes.
+- **Model Switching**: Tap the model pill badge at the top to toggle between active local models.
+- **Multimodal Evidence Intake**: Attach trauma photos, auscultation audio notes, or procedural video clips for immediate on-device evaluation.
+- **Structured Emergency Output**: Formats clear, step-by-step procedures with anatomical landmarks, compression rhythms, and highlighted contraindications.
+- **Clinical Prompts**: Quick suggestion chips for high-frequency emergencies (*12-lead ECG STEMI triage, Pediatric anaphylaxis epinephrine dosing, Tension pneumothorax seal*).
 
-### 📚 25.6 GB Indexed Medical Knowledge Vault (`MedicalVaultScreen`)
-- **Massive Offline Corpus**: Indexes over 3,200 peer-reviewed clinical guidelines, decision trees, surgical tutorials, anatomical image packs, and triage flowcharts.
-- **SQLite FTS4 Vector Search Engine**: Blends dense semantic vector embeddings (384-dimensional) with BM25 inverted lexical indexing for sub-20ms multi-modal retrieval.
-- **Strict Media-Type Filtering**: `VaultMetadataHelper` enables filtering evidence streams across 9 clinical modalities before feeding context to local models:
-  - `VIDEO` (procedural demos, CPR cadence)
-  - `FLOWCHART` (triage algorithms, stroke BE-FAST trees)
-  - `IMAGE` (anatomical landmarks, burn Lund-Browder charts)
-  - `TEXT` (dosing guidelines, TCCC field protocols)
-  - `DECISION_TREE`, `DIAGRAM`, `PROTOCOL`, `AUDIO`, `STRUCTURED_DATA`
-- **Efficient Compression**: The 25.6 GB knowledge corpus is stored using high-efficiency compression into ~4.18 GB on local flash storage.
+### 📚 25.6 GB Indexed Medical Knowledge Vault
+- **Comprehensive Offline Corpus**: Indexes over 3,200 peer-reviewed clinical protocols, decision trees, surgical tutorials, and anatomical references.
+- **Sub-20ms Search**: Powered by SQLite FTS4 full-text search combined with 384-dimensional dense semantic vectors.
+- **Strict Clinical Type Filtering**: Filter results by media type before feeding them to local models:
+  - `FLOWCHART` (triage decision trees, algorithm nodes)
+  - `VIDEO` (procedural step demonstrations, compression cadence)
+  - `IMAGE` (anatomical landmarks, Lund-Browder burn charts)
+  - `TEXT` (dosing guidelines, field treatment protocols)
+  - `DECISION_TREE`, `DIAGRAM`, `PROTOCOL`, `STRUCTURED_DATA`
+- **Smart Storage Compression**: The 25.6 GB uncompressed corpus is packaged efficiently into 4.18 GB of flash storage.
 
-### ⚙️ On-Device AI Model Manager (`GeneralSettingsScreen`)
-- **Download & Storage Manager**: View storage consumption, model quantization formats, and RAM requirements.
-- **Quantized Model Catalog**:
-  - **Gemini Nano (AICore)**: System-level INT4 inference for lightweight clinical text generation.
+### ⚙️ On-Device AI Models Download Manager
+- **Model Catalog**:
+  - **Gemini Nano (AICore)**: Built-in system-level INT4 inference.
   - **Llama 3.2 3B Instruct Mobile**: 4-bit Q4_K_M quantized LLM (1.89 GB, 2.4 GB RAM requirement).
   - **Gemma 2B Ultra-Compact**: INT4 quantized (1.12 GB, 1.4 GB RAM requirement).
   - **Mistral 7B Mobile v0.3**: 4-bit Q4_0 quantized model (3.80 GB, 4.2 GB RAM requirement).
   - **MobileNetV4 Medical Vision**: INT8 image classifier for wound analysis (48 MB, 90 MB RAM).
-  - **Whisper Mobile**: INT8 acoustic and speech model for hands-free auscultation notes (140 MB).
-- **Cryptographic Weight Verification**: One-tap SHA-256 checksum verification ensures model weights are tamper-free and uncorrupted.
+  - **Whisper Mobile**: INT8 acoustic and speech model for audio clinical notes (140 MB).
+- **Cryptographic Weight Verification**: Verify that downloaded model weights match official SHA-256 hashes with one tap.
 
-### 📋 Clean Case Record Keeping (`CasesScreen`)
-- **No Mock Cases**: Zero artificial or fake sample data.
-- **Room Local Persistence**: Full patient case management with Chief Complaint, demographics, timeline audit logs, and attached media items stored locally in encrypted SQLite.
+### 📋 Patient Triage Records (No Fake Mock Data)
+- **Real Patient Records Only**: No artificial mock cases seeded; the app starts clean with an intuitive empty state ready for real field entries.
+- **Encrypted Local Room Storage**: Save cases with demographics, chief complaints, timestamps, and attached clinical evidence safely on your phone.
 
 ---
 
-## 🛠️ Technology Stack & Frameworks
+## 🛠️ Technologies & Frameworks
 
-| Layer | Technology | Details |
+| Layer | Technology | Purpose |
 |---|---|---|
-| **Language** | Kotlin 2.2.10 | Modern Kotlin DSL with strict coroutine concurrency |
-| **UI Toolkit** | Jetpack Compose (BOM 2024.09.00) | Declarative UI with Material Design 3 dynamic components |
-| **Architecture** | MVVM + Clean Architecture | Unidirectional data flow, StateFlow, ViewModel, Repository pattern |
-| **Local Database** | Android Room 2.7.0 (KSP) | SQLite with FTS4 full-text search indexing |
-| **Search Engine** | Hybrid Dense + Lexical Search | 384-dimensional cosine vector similarity + BM25 FTS ranking |
-| **Model Runtimes** | LiteRT, ONNX Mobile, Android AICore | Quantized on-device execution (INT4, 4-bit, INT8) |
-| **Testing** | Robolectric 4.16.1 & JUnit 4.13.2 | High-fidelity local JVM tests for CUJs without emulator overhead |
-| **Build System** | Gradle 9.1.1 (Kotlin DSL) | Incremental build configuration with KSP code generation |
+| **Language** | Kotlin 2.2 | Clean, modern Kotlin with Coroutines and Flow |
+| **UI Toolkit** | Jetpack Compose (BOM 2024.09.00) | Declarative UI following Material Design 3 guidelines |
+| **Architecture** | MVVM + Clean Architecture | Unidirectional data flow with ViewModel and StateFlow |
+| **Local Database** | Android Room 2.7.0 (KSP) | Local database with SQLite FTS4 virtual table indexing |
+| **Search Engine** | Hybrid FTS4 & Dense Vectors | Sub-20ms BM25 full-text search combined with 384-d semantic vectors |
+| **Local AI Runtimes** | LiteRT, ONNX Mobile, Android AICore | High-speed local execution of INT4, 4-bit, and INT8 quantized weights |
+| **Serialization** | Moshi 1.15 | Fast JSON parsing for clinical evidence and case models |
+| **Testing** | Robolectric 4.16.1 & JUnit 4.13.2 | Rugged verification across 46 unit and integration test cases |
 
 ---
 
@@ -107,7 +115,7 @@ Medica was engineered from the ground up to operate **entirely on device silicon
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                    User Interface (Compose M3)                  │
-│   ChatScreen   │   CasesScreen   │  MedicalVault  │  Settings   │
+│    ChatScreen   │   CasesScreen   │  MedicalVault  │  Settings  │
 └───────────────▲─────────────────▲────────────────▲──────────────┘
                 │                 │                │
 ┌───────────────┴─────────────────┴────────────────┴──────────────┐
@@ -126,67 +134,6 @@ Medica was engineered from the ground up to operate **entirely on device silicon
 
 ---
 
-## 🧪 Rugged Verification & Test Suite
-
-Medica is backed by an automated test suite verifying edge cases, clinical accuracy, and concurrent stability:
-
-- **Total Tests**: **46 Automated Tests** (100% Pass Rate).
-- **Clinical Scenario Tests**:
-  - `Arterial Hemorrhage`: Validates tourniquet pressure instructions, windlass tightening, and anatomical arterial pressure points.
-  - `Cardiac Arrest`: Validates 100–120 bpm compression cadence video cues, sternum landmark imaging, and 30:2 ratio alerts.
-  - `Acute Anaphylaxis`: Validates immediate Epinephrine 0.3mg IM anterolateral thigh step and contraindications against oral antihistamine delays.
-  - `Tension Pneumothorax`: Validates 3-sided occlusive dressing and 2nd intercostal needle decompression protocols.
-  - `Acute Ischemic Stroke`: Validates BE-FAST assessment tree and *Time Last Seen Normal* critical metrics.
-- **Resilience & Concurrency**:
-  - Verifies safety during 5,000+ character queries, empty inputs, unicode emoji inputs, and rapid parallel coroutine execution without memory leaks or race conditions.
-
-### Running Unit & Robolectric Tests
-```bash
-# Execute complete unit test suite
-gradle :app:testDebugUnitTest
-
-# Run specific rugged clinical suite
-gradle :app:testDebugUnitTest --tests "com.example.RuggedMedicalVaultAndNeuralTest"
-```
-
----
-
-## 🔨 Building from Source
-
-### Prerequisites
-- JDK 17 or higher
-- Android SDK 34 (Android 14)
-- Gradle 9.x
-
-### Build Commands
-```bash
-# Clone the repository
-git clone https://github.com/dex34132/medica-on-device.git
-cd medica-on-device
-
-# Build debug APK
-gradle assembleDebug
-
-# Output location:
-# app/build/outputs/apk/debug/app-debug.apk
-```
-
----
-
 ## 📄 License
 
-```text
-Copyright 2026 Medica Contributors
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-```
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
