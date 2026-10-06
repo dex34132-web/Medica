@@ -432,38 +432,25 @@ object ExternalNeuralVaultNetwork {
             }
 
             else -> {
-                // Generalized High-Yield Emergency Assessment
-                conditionTitle = "Acute Undifferentiated Medical Presentation (${complaint.take(40)})"
-                aiExplanation = "The external neural network correlates responder observations with preloaded clinical emergency protocols in the 25 GB vault. High-priority airway, breathing, and circulatory parameters have been evaluated to formulate targeted multimodal field action steps."
-                textSteps = matchedAssets.firstOrNull()?.clinicalSteps ?: listOf(
-                    "Perform primary survey (Airway, Breathing, Circulation, Disability, Exposure).",
-                    "Establish patient position of comfort; do not force supine.",
-                    "Administer Oxygen to maintain pulse oximetry SpO2 between 94% and 98%.",
-                    "Obtain complete set of vital signs: BP, HR, RR, SpO2, Temperature, and Blood Glucose.",
-                    "Prepare standardized MIST handover report for emergency transport."
+                // Deep Clinical AI Brain Dynamic Inference
+                val inference = ClinicalBrainEngine.deduceClinicalActionPlan(
+                    query = if (complaint.isNotBlank()) complaint else observations,
+                    attachedMedia = attachedMedia
                 )
-                imageSteps = listOf(
-                    ImageStep(1, "Primary Survey Assessment", "Airway & Cervical Alignment", "Inspect chest wall movement symmetry and airway patency in neutral position.", "Atlas Ref: VAULT-IM-301"),
-                    ImageStep(2, "Vascular Access Site", "Antecubital Fossa / Forearm", "Identify cephalic or median cubital vein for 18G/20G peripheral IV catheter placement.", "Atlas Ref: VAULT-IM-304")
-                )
-                videoSteps = listOf(
-                    VideoStep("00:05", "Vitals Protocol", "Systematic vital sign gathering sequence (BP, pulse, continuous oximetry).", "Re-assess every 5 minutes in critical status."),
-                    VideoStep("00:20", "Positioning", "Position of comfort vs left lateral recovery position.", "Prevents aspiration if level of consciousness fluctuates.")
-                )
-                flowchartSteps = listOf(
-                    FlowchartStep("NODE-1", "Is patient hemodynamically unstable (SBP < 90 mmHg, HR > 120 bpm)?", "Prepare rapid transport + IV fluid resuscitation challenge", "Complete secondary assessment and symptom-targeted protocol")
-                )
+                conditionTitle = inference.conditionTitle
+                aiExplanation = inference.clinicalImpression + " " + inference.thinkingSummary.replace("\n", " ")
+                textSteps = inference.actionSteps
+                imageSteps = inference.imageSteps
+                videoSteps = inference.videoSteps
+                flowchartSteps = inference.flowchartSteps
                 audioSteps = listOf(
-                    AudioStep("Acoustic-1", "Bilateral Lung Field Auscultation", "Anterior and posterior midaxillary", "Confirm vesicular breath sounds without crackles, wheezes, or silent areas.")
+                    AudioStep("Acoustic-1", "Systemic Auscultation & Respiratory Sound Check", "Anterior & Posterior Thorax", "Evaluates symmetric ventilation and acoustic baseline.")
                 )
                 dosing = listOf(
-                    "Normal Saline 0.9% IV: Titrate 250-500 mL boluses based on perfusion markers",
-                    "Supplemental Oxygen: 2-4 L/min nasal cannula or 10-15 L/min non-rebreather mask"
+                    "High-Flow Supplemental Oxygen: Titrate 10-15 L/min via Non-Rebreather if SpO2 < 94%",
+                    "Isotonic Crystalloids (Normal Saline): 250-500 mL IV bolus for hypoperfusion"
                 )
-                contraindications = listOf(
-                    "Do not administer oral medications if patient has altered mental status or impaired gag reflex.",
-                    "Avoid fluid overload in patients with history of congestive heart failure or renal failure."
-                )
+                contraindications = inference.contraindications
             }
         }
 
